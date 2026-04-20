@@ -9,6 +9,8 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
 /**
@@ -18,7 +20,7 @@ import java.util.ArrayList;
  */
 public class UDPServer {
     
-    private static final int PORT = 7777;
+    private static final int PORT = 7778;
     //Aqui se usa DatagramSocket y no serverSocket como TCP por que en UDP no hay conexion con el cliente, solo se envían los mensajes o paquetes
     private DatagramSocket datagramSocket;
 
@@ -64,7 +66,7 @@ public class UDPServer {
             System.out.println("[UDP] Recibido: " + mensaje);
             
             //Registrar el usuario
-            if (mensaje.startsWith("Registrar:")) {
+            if (mensaje.startsWith("REGISTRAR:")) {
                 //Dividimos el nombre en un arreglo con split y que tome la posición 1 osea el nombre de usuario en vez de Registrar
                 String nombreUsuario = mensaje.split(":")[1];
 
@@ -107,7 +109,8 @@ public class UDPServer {
                 Recorremos la lista de usuarios y usamos el metodo para enviarles el mensaje a todos
                 */
                 for (Usuario c : usuarios) {
-                    enviarDirecto(c, remitente.nombre + ": " + texto);
+                    String fechaHora = obtenerFechaHora();
+                    enviarDirecto(c, remitente.nombre + ": " + texto +" [" + fechaHora + "]");
                 }
             }
         }
@@ -166,6 +169,13 @@ public class UDPServer {
         datagramSocket.send(paquete);
     }
 
+    //Metodo para obtener la fecha y hora del mensaje y mostrarlo
+    private String obtenerFechaHora() {
+        //Definimos como queremos ver la fecha
+        DateTimeFormatter formato = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+        //Convertimos la fecha a texto
+        return LocalDateTime.now().format(formato);
+    }
     public static void main(String[] args) {
         try {
             UDPServer server = new UDPServer();
