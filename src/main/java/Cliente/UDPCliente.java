@@ -28,6 +28,9 @@ public class UDPCliente {
         direccion = InetAddress.getByName(SERVER_IP);
 
         System.out.println("=== CLIENTE UDP INICIADO ===");
+        System.out.println("Para mesnsajes privados");
+        System.out.println("Escriba PRIVADO:USUARIO:MENSAJE");
+        System.out.println("Para mensajes publicos solo escriba en el servidor");
         Scanner sc = new Scanner(System.in);
 
         System.out.print("Ingresa tu usuario para registrarse: ");
@@ -68,19 +71,21 @@ public class UDPCliente {
         recibir.start();
 
         //Esto es para enviar mensajes
-        while (true) {
+         while (true) {
             System.out.print("> ");
-            //El usuario escribe el mensaje
             String mensaje = sc.nextLine();
+
             if (mensaje.equalsIgnoreCase("exit")) {
                 socket.close();
                 break;
             }
-            //Enviamos el mensaje
-            /*
-            Aqui es TODOS por que el servidor UDP tiene la logica de que si inicia asi se les muestre a todos los usuarios
-            */
-            enviar("TODOS:" + mensaje);
+
+            // Detecta si es privado y si no lo envia a todos
+            if (mensaje.startsWith("PRIVADO:")) {
+                enviar(mensaje);
+            } else {
+                enviar("TODOS:" + mensaje);
+            }
         }
     }
 

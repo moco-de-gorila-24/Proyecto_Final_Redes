@@ -52,6 +52,9 @@ public class UDPServer {
         //Arreglo de bytes que guarda los datos que le llegan
         byte[] buffer = new byte[1024];
         //Bucle infinito ya que el servidor nunca se detiene
+        try{
+            
+        
          while (true) {
             //Creamos el paquete para recibir vacio aun
             DatagramPacket paquete = new DatagramPacket(buffer, buffer.length);
@@ -62,8 +65,6 @@ public class UDPServer {
             datagramSocket.receive(paquete);
             //Convertimos los bytes a un string del buffer, el 0 es por que empieza en la posición 0
             String mensaje = new String(paquete.getData(), 0, paquete.getLength());
-            //Mostramos el mensaje
-            System.out.println("[UDP] Recibido: " + mensaje);
             
             //Registrar el usuario
             if (mensaje.startsWith("REGISTRAR:")) {
@@ -81,6 +82,8 @@ public class UDPServer {
                 //Si pasa las validaciones registramos el usuario
                 Usuario nuevoUsuario = new Usuario(nombreUsuario,paquete.getAddress(),paquete.getPort());
                 usuarios.add(nuevoUsuario);
+                //Mostramos el mensaje
+                System.out.println("[UDP] Recibido: " + mensaje);
                 enviar("OK: usuario registrado", paquete);
             }
                 /*
@@ -101,6 +104,7 @@ public class UDPServer {
                     //Continue es para ignorar el mensaje
                     continue;
                 }
+                
                 //Obtenemos el texto del mensaje quitando el Todos el mensaje y 6 por que todos: tiene 6 caracteres y empieza en el 7
                 String texto = mensaje.substring(6);
                 //Esta parte es la importante
@@ -108,15 +112,56 @@ public class UDPServer {
                 En esta parte a cada usuario mediante el metodo de enviarDirecto que hice va a hacer que se el envie el mensaje a todos los de la sesion
                 Recorremos la lista de usuarios y usamos el metodo para enviarles el mensaje a todos
                 */
+                 String fechaHora = obtenerFechaHora();
+
+                // Mostramos el mensaje en el servidor con el remitente, su mensaje y fecha y hora
+                System.out.println( "[MENSAJE] " + remitente.nombre + " -> " + texto + " [" + fechaHora + "]");
                 for (Usuario c : usuarios) {
-                    String fechaHora = obtenerFechaHora();
-                    enviarDirecto(c, remitente.nombre + ": " + texto +" [" + fechaHora + "]");
+                    String fechaHora1 = obtenerFechaHora();
+                    enviarDirecto(c, remitente.nombre + ": " + texto +" [" + fechaHora1 + "]");
                 }
-            }
+            } else if (mensaje.startsWith("PRIVADO:")) {
+                //Busacmos quien envio el mensaje
+                Usuario remitente = buscarPorDireccion(paquete);
+                //Dividimos el mensaje
+                String[] partes = mensaje.split(":", 3);
+                //Validamos que tenga usuario y el mensaje, el privado ya se pone
+                    if (partes.length < 3) {
+                        enviar("Formato incorrecto. Usa PRIVADO:usuario:mensaje", paquete);
+                        continue;
+                    }
+                //A quien va el mensaje y la parte 1 por que es donde se muestra el usuario
+                String destinoNombre = partes[1];
+                //Obtenemos el mensaje
+                String texto = partes[2];
+                //Buscamos a quien va el mensaje
+                Usuario destino = buscarPorNombre(destinoNombre);
+                //Si no existe el usuario lo mostramos
+                    if (destino == null) {
+                        enviar("Usuario destino no existe", paquete);
+                        continue;
+                    }
+                //Obtenemos la fecha y hora actual
+                String fechaHora = obtenerFechaHora();
+                //Lo mostramos en el servidor
+                System.out.println("[PRIVADO] " + remitente.nombre +" -> " + destino.nombre + ": " + texto +" [" + fechaHora + "]");
+                    //Se lo enviamos al destinario
+                    enviarDirecto(destino,"[PRIVADO] " + remitente.nombre +": " + texto + " [" + fechaHora + "]");
+                    //Mostramos al que lo envió el mensaje
+                    enviarDirecto(remitente, "[PRIVADO a " + destino.nombre + "] " +texto + " [" + fechaHora + "]");
+                }
         }
-
+            }catch(IOException e){
+                System.out.println("Error en el servidor" + e.getMessage());
+            }finally {
+                //Verificamos que el socket exista y no este cerrado
+            if (datagramSocket != null && !datagramSocket.isClosed()) {
+                //Si pasa la validacion lo cerramos
+                datagramSocket.close();
+                System.out.println("Servidor cerrado correctamente.");
+            }
     }
-
+    }
     //Metodo para validar que no existan 2 usuarios con el mismo nombre
     private boolean existeUsuario(String usuario) {
         for (Usuario c : usuarios) {
@@ -176,6 +221,17 @@ public class UDPServer {
         //Convertimos la fecha a texto
         return LocalDateTime.now().format(formato);
     }
+    
+    //Metodo para buscar a un usuario y sirve para poder mandar mensajes privados
+       private Usuario buscarPorNombre(String nombre) {
+        for (Usuario u : usuarios) {
+            if (u.nombre.equalsIgnoreCase(nombre)) {
+                return u;
+            }
+        }
+        return null;
+    }
+    
     public static void main(String[] args) {
         try {
             UDPServer server = new UDPServer();
