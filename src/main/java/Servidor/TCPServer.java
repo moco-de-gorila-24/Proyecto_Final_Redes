@@ -3,13 +3,18 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package Servidor;
+import Cliente.Usuario;
 import java.io.*;
 import java.net.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 
 public class TCPServer {
     private static final int PORT = 7777; // Puerto TCP
     private ServerSocket serverSocket;
-
+    public static ArrayList<Usuario> usuarios = new ArrayList<>();
+            
     public TCPServer() throws IOException {
         // ServerSocket espera conexiones entrantes
         serverSocket = new ServerSocket(PORT);
@@ -72,10 +77,11 @@ public class TCPServer {
                 String inputLine;
                 // Leer línea por línea
                 while ((inputLine = in.readLine()) != null) {
+                    
                     System.out.println("[RECIBIDO] " + inputLine);
                     
                     // Enviar confirmación al cliente (Echo)
-                    out.println("SERVIDOR: Mensaje recibido -> " + inputLine);
+                    out.println("SERVIDOR: Mensaje recibido -> " + inputLine + " [" + obtenerFechaActual() + "]");
                 }
             } catch (IOException e) {
                 System.err.println("Error de conexión con cliente: " + e.getMessage());
@@ -88,7 +94,15 @@ public class TCPServer {
                 }
             }
         }
+        public String obtenerFechaActual(){
+        DateTimeFormatter formato = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+        String fechaHoraActual = LocalDateTime.now().format(formato);
+        return fechaHoraActual;
     }
+        
+    }
+    
+    
 
     public static void main(String[] args) {
         try {

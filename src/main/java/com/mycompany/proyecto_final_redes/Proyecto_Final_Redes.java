@@ -6,7 +6,7 @@ package com.mycompany.proyecto_final_redes;
 
 /**
  *
- * @author Central
+ * @author Luis
  */
 public class Proyecto_Final_Redes {
 

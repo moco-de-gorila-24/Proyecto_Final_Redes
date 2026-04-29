@@ -4,6 +4,7 @@
  */
 package Servidor;
 
+import Cliente.Usuario;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -28,18 +29,6 @@ public class UDPServer {
     private static ArrayList<Usuario> usuarios = new ArrayList<>();
     
     //Clase cliente para identificarlos a cada uno
-    public class Usuario{
-    String nombre;
-    //Clase que representa una dirección ip y la guardamos 
-    InetAddress direccion;
-    int puerto;
-
-    public Usuario(String nombre, InetAddress direccion, int puerto) {
-        this.nombre = nombre;
-        this.direccion = direccion;
-        this.puerto = puerto;
-    }
-}
     
     //Constructor que recibe el puerto 
     public UDPServer() throws SocketException {
@@ -53,8 +42,8 @@ public class UDPServer {
         byte[] buffer = new byte[1024];
         //Bucle infinito ya que el servidor nunca se detiene
         try{
-            
-        
+
+
          while (true) {
             //Creamos el paquete para recibir vacio aun
             DatagramPacket paquete = new DatagramPacket(buffer, buffer.length);
@@ -104,7 +93,7 @@ public class UDPServer {
                     //Continue es para ignorar el mensaje
                     continue;
                 }
-                
+
                 //Obtenemos el texto del mensaje quitando el Todos el mensaje y 6 por que todos: tiene 6 caracteres y empieza en el 7
                 String texto = mensaje.substring(6);
                 //Esta parte es la importante
@@ -115,10 +104,10 @@ public class UDPServer {
                  String fechaHora = obtenerFechaHora();
 
                 // Mostramos el mensaje en el servidor con el remitente, su mensaje y fecha y hora
-                System.out.println( "[MENSAJE] " + remitente.nombre + " -> " + texto + " [" + fechaHora + "]");
+                System.out.println( "[MENSAJE] " + remitente.getNombre() + " -> " + texto + " [" + fechaHora + "]");
                 for (Usuario c : usuarios) {
                     String fechaHora1 = obtenerFechaHora();
-                    enviarDirecto(c, remitente.nombre + ": " + texto +" [" + fechaHora1 + "]");
+                    enviarDirecto(c, remitente.getNombre() + ": " + texto +" [" + fechaHora1 + "]");
                 }
             } else if (mensaje.startsWith("PRIVADO:")) {
                 //Busacmos quien envio el mensaje
@@ -144,11 +133,11 @@ public class UDPServer {
                 //Obtenemos la fecha y hora actual
                 String fechaHora = obtenerFechaHora();
                 //Lo mostramos en el servidor
-                System.out.println("[PRIVADO] " + remitente.nombre +" -> " + destino.nombre + ": " + texto +" [" + fechaHora + "]");
+                System.out.println("[PRIVADO] " + remitente.getNombre() +" -> " + destino.getNombre() + ": " + texto +" [" + fechaHora + "]");
                     //Se lo enviamos al destinario
-                    enviarDirecto(destino,"[PRIVADO] " + remitente.nombre +": " + texto + " [" + fechaHora + "]");
+                    enviarDirecto(destino,"[PRIVADO] " + remitente.getNombre() +": " + texto + " [" + fechaHora + "]");
                     //Mostramos al que lo envió el mensaje
-                    enviarDirecto(remitente, "[PRIVADO a " + destino.nombre + "] " +texto + " [" + fechaHora + "]");
+                    enviarDirecto(remitente, "[PRIVADO a " + destino.getNombre() + "] " +texto + " [" + fechaHora + "]");
                 }
         }
             }catch(IOException e){
@@ -165,7 +154,7 @@ public class UDPServer {
     //Metodo para validar que no existan 2 usuarios con el mismo nombre
     private boolean existeUsuario(String usuario) {
         for (Usuario c : usuarios) {
-            if (c.nombre.equals(usuario)) {
+            if (c.getNombre().equals(usuario)) {
                 return true;
             }
         }
@@ -177,8 +166,8 @@ public class UDPServer {
         //Recorre la lista de clientes
         for (Usuario c : usuarios) {
             //Compara el puerto y el ip del paquete con el usuario
-            if (c.direccion.equals(paquete.getAddress()) &&
-                c.puerto == paquete.getPort()) {
+            if (c.getDireccion().equals(paquete.getAddress()) &&
+                c.getPuerto() == paquete.getPort()) {
                 //Si son iguales devuelve el cliente
                 return c;
             }
@@ -207,8 +196,8 @@ public class UDPServer {
                 msg.getBytes(),
                 msg.length(),
                 //A este usuario
-                usuario.direccion,
-                usuario.puerto
+                usuario.getDireccion(),
+                usuario.getPuerto()
         );
         //Lo mandamos
         datagramSocket.send(paquete);
@@ -221,17 +210,17 @@ public class UDPServer {
         //Convertimos la fecha a texto
         return LocalDateTime.now().format(formato);
     }
-    
+
     //Metodo para buscar a un usuario y sirve para poder mandar mensajes privados
        private Usuario buscarPorNombre(String nombre) {
         for (Usuario u : usuarios) {
-            if (u.nombre.equalsIgnoreCase(nombre)) {
+            if (u.getNombre().equalsIgnoreCase(nombre)) {
                 return u;
             }
         }
         return null;
     }
-    
+
     public static void main(String[] args) {
         try {
             UDPServer server = new UDPServer();
