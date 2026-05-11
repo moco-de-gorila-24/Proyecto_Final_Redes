@@ -32,7 +32,7 @@ public class TCPServer {
                 //Crea un hilo para cada cliente
                 // accept() es bloqueante: espera a que un cliente se conecte
                 Socket clientSocket = serverSocket.accept();
-                
+               
                 System.out.println("[INFO] Cliente conectado: " + 
                                    clientSocket.getInetAddress().getHostAddress());
 
@@ -73,6 +73,7 @@ public class TCPServer {
             try {
                 // Flujo de entrada (Leer los mensajes del cliente)
                 in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+            
                 // Flujo de salida (Escribir al cliente) - autoflush true para enviar inmediato
                 out = new PrintWriter(clientSocket.getOutputStream(), true);
 
@@ -80,12 +81,20 @@ public class TCPServer {
                 String inputLine;
                 // Leer línea por línea
                 while ((inputLine = in.readLine()) != null) {
-                    
+                        String[] nombre = inputLine.split(":");
+                                
+                        InetAddress direccion = InetAddress.getByName("127.0.0.1");
+                        Usuario usuario = new Usuario(nombre[0], direccion, PORT);
+                        
+                        usuarios.add(usuario);
+                        
+                        inputLine += " ";
+                        inputLine += obtenerFechaActual();
                         System.out.println("[RECIBIDO] " + inputLine);
 
                         // En vez del echo, broadcast a todos
-                        mensajesGlobales(inputLine);
-                    
+                        mensajesGlobales(inputLine.toString());
+                        
                 }
             } catch (IOException e) {
                 System.err.println("Error de conexión con cliente: " + e.getMessage());
@@ -102,15 +111,38 @@ public class TCPServer {
             DateTimeFormatter formato = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
             String fechaHoraActual = LocalDateTime.now().format(formato);
             return fechaHoraActual;
-        }
-        
-        public static void mensajesGlobales(String mensaje) {
+        }   
+    }
+
+    public static void mensajesGlobales(String mensaje) {
             for (PrintWriter pw : mensajes) {
                 pw.println(mensaje);
             }
         }
-        
-        
+    
+    public void enviarMensaje(String nombre, String mensaje) {
+            for (int i = 0; i < usuarios.size(); i++) {
+                if (nombre.trim().equalsIgnoreCase(usuarios.get(i).getNombre().trim())) { 
+                    PrintWriter pw = usuarios.get(i).getOut();
+                    if (pw != null) {
+                        pw.println("[SERVIDOR]: " + mensaje); 
+                    }
+                    return; 
+                }
+            }
+            System.out.println("El usuario '" + nombre + "' no existe.");
+        }
+    
+    public boolean existeUsuario(String nombre){
+            int i = 0;
+            while(i < usuarios.size()){
+                if(usuarios.get(i).getNombre().trim().equals(nombre.trim())){
+                     return true;
+                }
+                i ++;
+            }
+            return false;
+        }
 
     public static void main(String[] args) {
         try {
