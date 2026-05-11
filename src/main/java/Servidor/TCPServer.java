@@ -15,6 +15,8 @@ public class TCPServer {
     private ServerSocket serverSocket;
     public static ArrayList<Usuario> usuarios = new ArrayList<>();
             
+    private static ArrayList<PrintWriter> mensajes = new ArrayList<>();
+
     public TCPServer() throws IOException {
         // ServerSocket espera conexiones entrantes
         serverSocket = new ServerSocket(PORT);
@@ -47,7 +49,7 @@ public class TCPServer {
     }
 
     public void stop() {
-        try {
+        try {               
             if (serverSocket != null && !serverSocket.isClosed()) {
                 serverSocket.close();
             }
@@ -74,14 +76,16 @@ public class TCPServer {
                 // Flujo de salida (Escribir al cliente) - autoflush true para enviar inmediato
                 out = new PrintWriter(clientSocket.getOutputStream(), true);
 
+                mensajes.add(out);
                 String inputLine;
                 // Leer línea por línea
                 while ((inputLine = in.readLine()) != null) {
                     
-                    System.out.println("[RECIBIDO] " + inputLine);
+                        System.out.println("[RECIBIDO] " + inputLine);
+
+                        // En vez del echo, broadcast a todos
+                        mensajesGlobales(inputLine);
                     
-                    // Enviar confirmación al cliente (Echo)
-                    out.println("SERVIDOR: Mensaje recibido -> " + inputLine + " [" + obtenerFechaActual() + "]");
                 }
             } catch (IOException e) {
                 System.err.println("Error de conexión con cliente: " + e.getMessage());
@@ -95,14 +99,18 @@ public class TCPServer {
             }
         }
         public String obtenerFechaActual(){
-        DateTimeFormatter formato = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
-        String fechaHoraActual = LocalDateTime.now().format(formato);
-        return fechaHoraActual;
-    }
+            DateTimeFormatter formato = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+            String fechaHoraActual = LocalDateTime.now().format(formato);
+            return fechaHoraActual;
+        }
         
-    }
-    
-    
+        public static void mensajesGlobales(String mensaje) {
+            for (PrintWriter pw : mensajes) {
+                pw.println(mensaje);
+            }
+        }
+        
+        
 
     public static void main(String[] args) {
         try {
