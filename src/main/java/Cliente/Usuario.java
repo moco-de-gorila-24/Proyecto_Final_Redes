@@ -4,6 +4,7 @@
  */
 package Cliente;
 
+import java.io.PrintWriter;
 import java.net.InetAddress;
 
 /**
@@ -15,11 +16,21 @@ public class Usuario{
     //Clase que representa una dirección ip y la guardamos 
     private InetAddress direccion;
     private int puerto;
+    private PrintWriter out;
 
     public Usuario(String nombre, InetAddress direccion, int puerto) {
         this.nombre = nombre;
         this.direccion = direccion;
         this.puerto = puerto;
+    }
+
+    
+    
+    public Usuario(String nombre, InetAddress direccion, int puerto, PrintWriter out) {
+        this.nombre = nombre;
+        this.direccion = direccion;
+        this.puerto = puerto;
+        this.out = out;
     }
 
     public String getNombre() {
@@ -44,6 +55,14 @@ public class Usuario{
 
     public void setPuerto(int puerto) {
         this.puerto = puerto;
+    }
+
+    public PrintWriter getOut() {
+        return out;
+    }
+
+    public void setOut(PrintWriter out) {
+        this.out = out;
     }
     
     
