@@ -8,6 +8,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.util.Scanner;
+import java.nio.charset.StandardCharsets;
 
 /**
  *
@@ -55,7 +56,7 @@ public class UDPCliente {
                     socket.receive(paquete);
 
                     //Convertimos los bytes a texto
-                    String msg = new String(paquete.getData(), 0,paquete.getLength());
+                    String msg = new String(paquete.getData(),0,paquete.getLength(),StandardCharsets.UTF_8);
 
                     //Mostramos el mensaje
                     System.out.println("\n" + msg);
@@ -76,7 +77,11 @@ public class UDPCliente {
             String mensaje = sc.nextLine();
 
             if (mensaje.equalsIgnoreCase("exit")) {
+                //Avisamos al servidor de que alguien se salio
+                enviar("SALIR:" + usuario);
+                //Cerramos socket
                 socket.close();
+
                 break;
             }
 
@@ -92,7 +97,7 @@ public class UDPCliente {
     // Método para enviar mensajes al servidor
     private void enviar(String msg) throws Exception {
         //Obtenemos el mensaje en bytes
-        byte[] data = msg.getBytes();
+        byte[] data = msg.getBytes(StandardCharsets.UTF_8);
         //Creamos el paquete con el mensaje que vamos a enviar
         DatagramPacket paquete = new DatagramPacket(data,data.length,direccion,SERVER_PORT);
         //Lo enviamos mediante el socket

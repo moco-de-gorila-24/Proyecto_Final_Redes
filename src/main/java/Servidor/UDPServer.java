@@ -13,6 +13,7 @@ import java.net.SocketException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.nio.charset.StandardCharsets;
 
 /**
  *
@@ -53,7 +54,7 @@ public class UDPServer {
             */
             datagramSocket.receive(paquete);
             //Convertimos los bytes a un string del buffer, el 0 es por que empieza en la posición 0
-            String mensaje = new String(paquete.getData(), 0, paquete.getLength());
+            String mensaje = new String(paquete.getData(),0,paquete.getLength(),StandardCharsets.UTF_8);
             
             //Registrar el usuario
             if (mensaje.startsWith("REGISTRAR:")) {
@@ -73,7 +74,23 @@ public class UDPServer {
                 usuarios.add(nuevoUsuario);
                 //Mostramos el mensaje
                 System.out.println("[UDP] Recibido: " + mensaje);
+                
+                System.out.println("Usuarios conectados: " + usuarios.size());
+                
                 enviar("OK: usuario registrado", paquete);
+                
+                }else if (mensaje.startsWith("SALIR:")) {
+                //Obtenemos el nombre de usuario
+                String nombreUsuario = mensaje.split(":")[1];
+                //Obtenemos el usurio
+                Usuario usuarioSalir = buscarPorNombre(nombreUsuario);
+                if (usuarioSalir != null) {
+                    //Lo removemos de la lista
+                    usuarios.remove(usuarioSalir);
+                    //Lo mostramos en el servidor
+                    System.out.println("[DESCONECTADO] " +usuarioSalir.getNombre() +" salió del chat");
+                    System.out.println("Usuarios conectados: " +usuarios.size());
+                }
             }
                 /*
                En esta parte lo que hace es
@@ -177,30 +194,31 @@ public class UDPServer {
 
     //Metodo para enviar un mensaje al mismo usuario
     private void enviar(String msg, DatagramPacket paquete) throws IOException {
-        DatagramPacket respuesta = new DatagramPacket(
-                //Le respondemos
-                msg.getBytes(),
-                msg.length(),
-                //Obtenemos el usuario mediante el paquete
-                paquete.getAddress(),
-                paquete.getPort()
-        );
-        //Enviamos la respuesta
+        byte[] data = msg.getBytes(StandardCharsets.UTF_8);
+
+             DatagramPacket respuesta = new DatagramPacket(
+             data,
+             data.length,
+             paquete.getAddress(),
+             paquete.getPort()
+           );
+
         datagramSocket.send(respuesta);
     }
 
     //Metodo para enviar un mensaje a cualquier usuario especifico
     private void enviarDirecto(Usuario usuario, String msg) throws IOException {
-        DatagramPacket paquete = new DatagramPacket(
-                //Le enviamos el mensaje
-                msg.getBytes(),
-                msg.length(),
-                //A este usuario
-                usuario.getDireccion(),
-                usuario.getPuerto()
+        //Convertimos el mensaje a bytes
+         byte[] data = msg.getBytes(StandardCharsets.UTF_8);
+            //Creamos el paquete UDP
+            DatagramPacket paquete = new DatagramPacket(
+            data,
+            data.length,
+            usuario.getDireccion(),
+            usuario.getPuerto()
         );
-        //Lo mandamos
-        datagramSocket.send(paquete);
+            
+     datagramSocket.send(paquete);
     }
 
     //Metodo para obtener la fecha y hora del mensaje y mostrarlo
