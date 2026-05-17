@@ -9,11 +9,14 @@ import java.net.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class TCPServer {
     private static final int PORT = 7777; // Puerto TCP
     private ServerSocket serverSocket;
     public static ArrayList<Usuario> usuarios = new ArrayList<>();
+    public static ArrayList<Usuario> listaEspera = new ArrayList<>();
             
     private static ArrayList<PrintWriter> mensajes = new ArrayList<>();
 
@@ -77,10 +80,30 @@ public class TCPServer {
                 // Flujo de salida (Escribir al cliente) - autoflush true para enviar inmediato
                 out = new PrintWriter(clientSocket.getOutputStream(), true);
 
+                String nombreUsuario = in.readLine();
+
+                if(usuarios.size() >= 5){
+                    InetAddress direccion = InetAddress.getByName("127.0.0.1");
+                    Usuario usuario = new Usuario(nombreUsuario.split(":")[0], direccion, PORT, out);
+                    out.println("[SERVIDOR]: Servidor lleno, estás en lista de espera...");
+                    listaEspera.add(usuario);
+
+                    // Bloquear al cliente hasta que haya espacio
+                    while(usuarios.size() >= 5){
+                        Thread.sleep(3000); // revisar cada 3 segundos
+                    }
+                    out.println("[SERVIDOR]: Hay espacio, entrando al chat...");
+                    usuarios.add(listaEspera.getLast());
+                    listaEspera.removeLast();
+                }
+
+                
                 mensajes.add(out);
                 String inputLine;
                 // Leer línea por línea
                 while ((inputLine = in.readLine()) != null) {
+                        String[] msg = inputLine.split(" ");
+                        System.out.println(msg[1]);
                         String[] nombre = inputLine.split(":");
                                 
                         InetAddress direccion = InetAddress.getByName("127.0.0.1");
@@ -91,13 +114,19 @@ public class TCPServer {
                         inputLine += " ";
                         inputLine += obtenerFechaActual();
                         System.out.println("[RECIBIDO] " + inputLine);
+                        
+                        if(msg[1].startsWith("@")){
+                            mensajePrivado(nombre[0], msg[1]);
+                        }
 
                         // En vez del echo, broadcast a todos
-                        mensajesGlobales(inputLine.toString());
+                        mensajesGlobales(inputLine);
                         
                 }
             } catch (IOException e) {
                 System.err.println("Error de conexión con cliente: " + e.getMessage());
+            } catch (InterruptedException ex) {
+                Logger.getLogger(TCPServer.class.getName()).log(Level.SEVERE, null, ex);
             } finally {
                 try {
                     if (clientSocket != null) clientSocket.close();
@@ -112,26 +141,25 @@ public class TCPServer {
             String fechaHoraActual = LocalDateTime.now().format(formato);
             return fechaHoraActual;
         }   
-    }
 
     public static void mensajesGlobales(String mensaje) {
-            for (PrintWriter pw : mensajes) {
-                pw.println(mensaje);
-            }
+        for (PrintWriter pw : mensajes) {
+            pw.println(mensaje);
         }
+    }
     
-    public void enviarMensaje(String nombre, String mensaje) {
-            for (int i = 0; i < usuarios.size(); i++) {
-                if (nombre.trim().equalsIgnoreCase(usuarios.get(i).getNombre().trim())) { 
-                    PrintWriter pw = usuarios.get(i).getOut();
+    public void mensajePrivado(String nombre, String mensaje) {
+        for (int i = 0; i < usuarios.size(); i++) {
+            if (nombre.trim().equalsIgnoreCase(usuarios.get(i).getNombre().trim())) { 
+                PrintWriter pw = usuarios.get(i).getOut();
                     if (pw != null) {
                         pw.println("[SERVIDOR]: " + mensaje); 
                     }
                     return; 
                 }
             }
-            System.out.println("El usuario '" + nombre + "' no existe.");
-        }
+        System.out.println("El usuario '" + nombre + "' no existe.");
+    }
     
     public boolean existeUsuario(String nombre){
             int i = 0;
@@ -142,8 +170,8 @@ public class TCPServer {
                 i ++;
             }
             return false;
-        }
-
+    }
+}    
     public static void main(String[] args) {
         try {
             TCPServer server = new TCPServer();
