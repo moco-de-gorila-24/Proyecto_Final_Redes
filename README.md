@@ -14,10 +14,10 @@ El sistema implementa una arquitectura cliente-servidor donde un servidor centra
 
 ## 👥 Integrantes
 
-|          Nombre         |         Matrícula         |
-|-------------------------|---------------------------|
-| Luis Alonso Ortiz       |         000000001         |
-| Angel Alberto Perez     |         000000002         |
+|          Nombre          |         Matrícula           |
+|--------------------------|-----------------------------|
+| Luis Alonso Ortiz        |         00000262702         |
+| Angel Alberto Perez      |         00000269680         |
 
 ---
 
@@ -101,16 +101,18 @@ Se te pedirá ingresar la IP del servidor y tu nombre de usuario.
 ## 📸 Capturas de pantalla
 
 ### Servidor activo
-![Servidor activo](screenshots/servidor_activo.png)
+(<img width="1237" height="450" alt="image" src="https://github.com/user-attachments/assets/a5851fe0-5fa0-4031-81fc-15f62ce51796" />)
 
 ### Registro de usuario
-![Registro de usuario](screenshots/registro_usuario.png)
+(<img width="938" height="516" alt="Captura de pantalla 2026-05-17 235018" src="https://github.com/user-attachments/assets/b9cc478d-4ed6-4b01-af1d-9921c2134866" />)
 
 ### Chat grupal
-![Chat grupal](screenshots/chat_grupal.png)
+
+(<img width="1062" height="518" alt="image" src="https://github.com/user-attachments/assets/6aef9304-6f48-4c41-8111-487463df9844" />)
 
 ### Mensaje privado
-![Mensaje privado](screenshots/mensaje_privado.png)
+(<img width="1053" height="443" alt="image" src="https://github.com/user-attachments/assets/119b4b0b-e6f6-4143-a775-ffcf71ba9611" />
+                    <img width="1132" height="522" alt="image" src="https://github.com/user-attachments/assets/56451d30-c8d1-44eb-8fed-0e3234170f36" />)
 
 ---
 
