@@ -88,7 +88,7 @@ public class UDPServer {
                     //Lo removemos de la lista
                     usuarios.remove(usuarioSalir);
                     //Lo mostramos en el servidor
-                    System.out.println("[DESCONECTADO] " +usuarioSalir.getNombre() +" salió del chat");
+                    System.out.println("[DESCONECTADO] " +usuarioSalir.getNombre() +" salio del chat");
                     System.out.println("Usuarios conectados: " +usuarios.size());
                 }
             }
