@@ -71,6 +71,11 @@ public class TCPServer {
             this.clientSocket = socket;
         }
 
+        /**
+         * Este metodo es el encargado de inicializar el servidor y de la comunicacion entre los usuarios y tiene la validacion 
+         * por si el servidor se llena y tambien cuenta con la logica para enviar mensaje privado 
+         * 
+         */
         @Override
         public void run() {
             try {
@@ -140,18 +145,38 @@ public class TCPServer {
                 }
             }
         }
+        
+        /**
+        * Obtiene la fecha y hora actual del sistema para asignarlo a una variable formato que esta es la que regresa
+        * con el formato dd/MM/yyyy HH:mm:ss.
+        *
+        * @return Fecha y hora actual en formato String.
+        */
         public String obtenerFechaActual(){
             DateTimeFormatter formato = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
             String fechaHoraActual = LocalDateTime.now().format(formato);
             return fechaHoraActual;
         }   
 
+ /**
+ * Envía un mensaje a todos los usuarios conectados.
+ *
+ * @param mensaje Mensaje que será enviado globalmente.
+ */
     public static void mensajesGlobales(String mensaje) {
         for (PrintWriter pw : mensajes) {
             pw.println(mensaje);
         }
     }
     
+    /**
+    * Envía un mensaje privado a un usuario específico.
+    * lo que hace es validar en la lista de usuarios que este exista en primer lugar 
+    * para despues enviar el mensaje al usuario con un printWriter
+    *
+    * @param nombre Nombre del usuario destinatario.
+    * @param mensaje Mensaje que se enviará al usuario.
+    */
     public void mensajePrivado(String nombre, String mensaje) {
         for (int i = 0; i < usuarios.size(); i++) {
             if (nombre.trim().equalsIgnoreCase(usuarios.get(i).getNombre().trim())) { 
@@ -165,6 +190,12 @@ public class TCPServer {
         System.out.println("El usuario '" + nombre + "' no existe.");
     }
     
+    /**
+    * Verifica si un usuario existe en la lista de usuarios.
+    *
+    * @param nombre Nombre del usuario a buscar.
+    * @return true si el usuario existe, false en caso contrario.
+    */
     public boolean existeUsuario(String nombre){
             int i = 0;
             while(i < usuarios.size()){
