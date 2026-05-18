@@ -81,12 +81,16 @@ public class TCPServer {
                 out = new PrintWriter(clientSocket.getOutputStream(), true);
 
                 String nombreUsuario = in.readLine();
+                InetAddress direccion = InetAddress.getByName("127.0.0.1");
+                Usuario usuario = new Usuario(nombreUsuario.split(":")[0], direccion, PORT, out);
+                usuarios.add(usuario);
+                mensajes.add(out);
 
                 if(usuarios.size() >= 5){
-                    InetAddress direccion = InetAddress.getByName("127.0.0.1");
-                    Usuario usuario = new Usuario(nombreUsuario.split(":")[0], direccion, PORT, out);
+                    
                     out.println("[SERVIDOR]: Servidor lleno, estás en lista de espera...");
                     listaEspera.add(usuario);
+                    mensajes.add(out);
 
                     // Bloquear al cliente hasta que haya espacio
                     while(usuarios.size() >= 5){
@@ -97,31 +101,31 @@ public class TCPServer {
                     listaEspera.removeLast();
                 }
 
-                
-                mensajes.add(out);
                 String inputLine;
-                // Leer línea por línea
                 while ((inputLine = in.readLine()) != null) {
                         String[] msg = inputLine.split(" ");
                         System.out.println(msg[1]);
                         String[] nombre = inputLine.split(":");
-                                
-                        InetAddress direccion = InetAddress.getByName("127.0.0.1");
-                        Usuario usuario = new Usuario(nombre[0], direccion, PORT);
-                        
-                        usuarios.add(usuario);
                         
                         inputLine += " ";
                         inputLine += obtenerFechaActual();
                         System.out.println("[RECIBIDO] " + inputLine);
                         
-                        if(msg[1].startsWith("@")){
-                            mensajePrivado(nombre[0], msg[1]);
+                        String[] partes = inputLine.split(":", 2);
+                        String remitente = partes[0].trim();
+                        String cuerpo = partes[1].trim(); // "@Bob hola"
+
+                        if (cuerpo.startsWith("@")) {
+                            String[] palabras = cuerpo.split(" ", 2);
+                            String destinatario = palabras[0].substring(1); 
+                            String texto = palabras.length > 1 ? palabras[1] : "";
+                            mensajePrivado(destinatario, "[Privado de " + remitente + "]: " + texto);
+                            mensajePrivado(usuario.getNombre(), texto);
+                        }
+                        else{
+                             mensajesGlobales(inputLine);
                         }
 
-                        // En vez del echo, broadcast a todos
-                        mensajesGlobales(inputLine);
-                        
                 }
             } catch (IOException e) {
                 System.err.println("Error de conexión con cliente: " + e.getMessage());

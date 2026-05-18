@@ -32,6 +32,7 @@ public class TCPCliente {
         System.out.print("Ingresa tu nombre de usuario: ");
         usernameIn = scanner.nextLine().trim();
         System.out.println("Escribe 'exit' para desconectarte.\n");
+        System.out.println("Escribe @ + nombre usuario para escribir un mensaje privado");
     }
 
     // Hilo para recibir mensajes del servidor asincrónamente
